@@ -4,10 +4,11 @@ import numpy as np
 import pickle
 
 # =========================
-# 1. Load Model & Scaler
+# 1. Load Model
 # =========================
 with open('LGBMClassifier.pkl', 'rb') as file:
-    LGBMClassifier_Model = pickle.load(file)
+    model = pickle.load(file)
+
 # =========================
 # 2. Feature Names
 # =========================
@@ -61,11 +62,6 @@ def encode_input():
         "Var_1": ["Cat_1", "Cat_2", "Cat_3", "Cat_4", "Cat_5", "Cat_6"].index(Var_1)
     }
     df = pd.DataFrame([data], columns=FEATURE_NAMES)
-
-    # scaling jika ada
-    if scaler is not None:
-        df = pd.DataFrame(scaler.transform(df), columns=FEATURE_NAMES)
-
     return df
 
 # =========================
@@ -80,4 +76,3 @@ if st.button("Prediksi"):
     st.write(f"Segmentasi Pelanggan: **{prediction_class}**")
     st.write("Probabilitas tiap kelas:")
     st.write(prediction_proba)
-
