@@ -1,18 +1,17 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
+import lightgbm as lgb
 
 # =========================
-# Load Model
+# Load Model LightGBM Native
 # =========================
 @st.cache_resource
 def load_model():
-    model = joblib.load("LGBMClassifier.pkl")  # Pastikan file ada di root repo
-    scaler = None  # Jika ada scaler, load di sini
-    return model, scaler
+    model = lgb.Booster(model_file="lgbm_model.txt")  # File hasil save_model()
+    return model
 
-model, scaler = load_model()
+model = load_model()
 
 # =========================
 # UI
@@ -51,13 +50,9 @@ if submit:
         jumlah_transaksi
     ]], columns=["umur", "pendapatan", "skor_belanja", "lama_langganan", "jumlah_transaksi"])
 
-    # Scaling jika ada
-    if scaler is not None:
-        input_scaled = scaler.transform(input_data)
-    else:
-        input_scaled = input_data
+    # LightGBM native Booster expect numpy array
+    prediction_proba = model.predict(input_data.values)  # output probabilitas
+    prediction_class = np.argmax(prediction_proba, axis=1)[0]
 
-    # Prediksi
-    prediction = model.predict(input_scaled)[0]
-    st.success(f"Prediksi Segmentasi: **{prediction}**")
+    st.success(f"Prediksi Segmentasi: **{prediction_class}**")
     st.balloons()
