@@ -1,49 +1,69 @@
 import streamlit as st
-import streamlit.components.v1 as stc
+import pandas as pd
+import numpy as np
 import pickle
 
-with open('Logistic_Regression_model.pkl', 'rb') as file:
-    Logistic_Regression_Model = pickle.load(file)
 
-html_temp = """<div style="background-color:#000;padding:10px;border-radius:10px">
-                <h1 style="color:#fff;text-align:center">Loan Eligibility Prediction App</h1> 
-                <h4 style="color:#fff;text-align:center">Made for: Credit Team</h4> 
-                """
 
-desc_temp = """ ### Loan Prediction App 
-                This app is used by Credit team for deciding Loan Application
-                
-                #### Data Source
-                Kaggle: Link <Masukkan Link>
-                """
 
-def main():
-    stc.html(html_temp)
-    menu = ["Home", "Machine Learning App"]
-    choice = st.sidebar.selectbox("Menu", menu)
+def load_model():
+    with open("model_lgbm.pkl", "rb") as file:
+        model = pickle.load(file)
+    try:
+        with open("scaler.pkl", "rb") as file:
+            scaler = pickle.load(file)
+    except FileNotFoundError:
+        scaler = None
+    return model, scaler
 
-    if choice == "Home":
-        st.subheader("Home")
-        st.markdown(desc_temp, unsafe_allow_html=True)
-    elif choice == "Machine Learning App":
-        run_ml_app()
+model, scaler = load_model()
 
-def run_ml_app():
-    design = """<div style="padding:15px;">
-                    <h1 style="color:#fff">Loan Eligibility Prediction</h1>
-                </div
-             """
-    st.markdown(design, unsafe_allow_html=True)
-    
+# =========================
+# UI Header
+# =========================
+st.set_page_config(page_title="Prediksi Segmentasi", layout="centered")
+st.title("🧩 Aplikasi Prediksi Segmentasi (LightGBM)")
+st.write("Masukkan data untuk memprediksi segmen pelanggan.")
 
-    #If button is clilcked
-    pass
+# =========================
+# Form Input User
+# =========================
+with st.form("prediction_form"):
+    col1, col2 = st.columns(2)
 
-def predict(gender, married, dependent, education, self_employed, applicant_income, coApplicant_income
-                         ,loan_amount, loan_amount_term, credit_history, property_area):
-    
-    #Making prediction
-    pass
+    with col1:
+        umur = st.number_input("Umur", min_value=0, max_value=100, value=30)
+        pendapatan = st.number_input("Pendapatan Tahunan (juta)", min_value=0, value=50)
+        skor_belanja = st.number_input("Skor Belanja (0-100)", min_value=0, max_value=100, value=50)
 
-if __name__ == "__main__":
-    main()
+    with col2:
+        lama_langganan = st.number_input("Lama Berlangganan (tahun)", min_value=0, value=5)
+        jumlah_transaksi = st.number_input("Jumlah Transaksi / Tahun", min_value=0, value=20)
+
+    submit = st.form_submit_button("Prediksi")
+
+# =========================
+# Prediksi
+# =========================
+if submit:
+    # Dataframe dari input user
+    input_data = pd.DataFrame([[
+        umur,
+        pendapatan,
+        skor_belanja,
+        lama_langganan,
+        jumlah_transaksi
+    ]], columns=["umur", "pendapatan", "skor_belanja", "lama_langganan", "jumlah_transaksi"])
+
+    # Scaling jika ada scaler
+    if scaler is not None:
+        input_scaled = scaler.transform(input_data)
+    else:
+        input_scaled = input_data
+
+    # Prediksi
+    prediction = model.predict(input_scaled)[0]
+
+    # Output hasil
+    st.success(f"Prediksi Segmentasi: **{prediction}**")
+    st.balloons()
