@@ -7,7 +7,7 @@ import pickle
 
 
 def load_model():
-    with open("model_lgbm.pkl", "rb") as file:
+    with open("LGBMClassifier.pkl","wb"") as file:
         model = pickle.load(file)
     try:
         with open("scaler.pkl", "rb") as file:
@@ -67,3 +67,4 @@ if submit:
     # Output hasil
     st.success(f"Prediksi Segmentasi: **{prediction}**")
     st.balloons()
+
