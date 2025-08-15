@@ -6,21 +6,8 @@ import pickle
 # =========================
 # 1. Load Model & Scaler
 # =========================
-@st.cache_resource
-def load_model():
-    with open("lgbm_model.pkl", "rb") as f:
-        model = pickle.load(f)
-
-    try:
-        with open("scaler.pkl", "rb") as f:
-            scaler = pickle.load(f)
-    except FileNotFoundError:
-        scaler = None
-
-    return model, scaler
-
-model, scaler = load_model()
-
+with open('LGBMClassifier.pkl', 'rb') as file:
+    LGBMClassifier_Model = pickle.load(file)
 # =========================
 # 2. Feature Names
 # =========================
@@ -93,3 +80,4 @@ if st.button("Prediksi"):
     st.write(f"Segmentasi Pelanggan: **{prediction_class}**")
     st.write("Probabilitas tiap kelas:")
     st.write(prediction_proba)
+
