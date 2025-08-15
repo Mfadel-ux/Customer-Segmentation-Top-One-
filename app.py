@@ -4,55 +4,81 @@ import numpy as np
 import lightgbm as lgb
 
 # =========================
-# Load Model LightGBM Native
+# 1. Load Model LightGBM (.txt)
 # =========================
 @st.cache_resource
 def load_model():
-    model = lgb.Booster(model_file="lgbm_model.txt")  # File hasil save_model()
+    model = lgb.Booster(model_file="lgbm_model.txt")  # hasil save_model() di Python
     return model
 
 model = load_model()
 
 # =========================
-# UI
+# 2. Feature Names sesuai training
 # =========================
-st.set_page_config(page_title="Prediksi Segmentasi", layout="centered")
-st.title("🧩 Aplikasi Prediksi Segmentasi (LightGBM)")
-st.write("Masukkan data pelanggan untuk mendapatkan prediksi segmen.")
-
-# =========================
-# Input Form
-# =========================
-with st.form("prediction_form"):
-    col1, col2 = st.columns(2)
-
-    with col1:
-        umur = st.number_input("Umur", min_value=0, max_value=100, value=30)
-        pendapatan = st.number_input("Pendapatan Tahunan (juta)", min_value=0, value=50)
-        skor_belanja = st.number_input("Skor Belanja (0-100)", min_value=0, max_value=100, value=50)
-
-    with col2:
-        lama_langganan = st.number_input("Lama Berlangganan (tahun)", min_value=0, value=5)
-        jumlah_transaksi = st.number_input("Jumlah Transaksi / Tahun", min_value=0, value=20)
-
-    submit = st.form_submit_button("Prediksi")
+FEATURE_NAMES = [
+    "Age",
+    "Ever_Married",
+    "Gender",
+    "Graduated",
+    "Profession",
+    "Work_Experience",
+    "Spending_Score",
+    "Family_Size",
+    "Var_1"
+]
 
 # =========================
-# Prediction Logic
+# 3. UI Judul
 # =========================
-if submit:
-    # Dataframe dari input
-    input_data = pd.DataFrame([[
-        umur,
-        pendapatan,
-        skor_belanja,
-        lama_langganan,
-        jumlah_transaksi
-    ]], columns=["umur", "pendapatan", "skor_belanja", "lama_langganan", "jumlah_transaksi"])
+st.title("Customer Segmentation Prediction")
+st.write("Masukkan data pelanggan untuk memprediksi segmen (0, 1, 2, 3).")
 
-    # LightGBM native Booster expect numpy array
-    prediction_proba = model.predict(input_data.values)  # output probabilitas
+# =========================
+# 4. Input User
+# =========================
+Age = st.number_input("Age", min_value=0, max_value=100, value=30)
+Ever_Married = st.selectbox("Ever Married", ["Yes", "No"])
+Gender = st.selectbox("Gender", ["Male", "Female"])
+Graduated = st.selectbox("Graduated", ["Yes", "No"])
+Profession = st.selectbox("Profession", [
+    "Artist", "Doctor", "Engineer", "Entertainment", "Executive", "Healthcare",
+    "Homemaker", "Lawyer", "Marketing"
+])
+Work_Experience = st.number_input("Work Experience (years)", min_value=0, max_value=50, value=5)
+Spending_Score = st.number_input("Spending Score (0-100)", min_value=0, max_value=100, value=50)
+Family_Size = st.number_input("Family Size", min_value=1, max_value=20, value=3)
+Var_1 = st.selectbox("Var_1", ["Cat_1", "Cat_2", "Cat_3", "Cat_4", "Cat_5", "Cat_6"])
+
+# =========================
+# 5. Encode Input
+# =========================
+def encode_input():
+    data = {
+        "Age": Age,
+        "Ever_Married": 1 if Ever_Married == "Yes" else 0,
+        "Gender": 1 if Gender == "Male" else 0,
+        "Graduated": 1 if Graduated == "Yes" else 0,
+        "Profession": [
+            "Artist", "Doctor", "Engineer", "Entertainment", "Executive", "Healthcare",
+            "Homemaker", "Lawyer", "Marketing"
+        ].index(Profession),
+        "Work_Experience": Work_Experience,
+        "Spending_Score": Spending_Score,
+        "Family_Size": Family_Size,
+        "Var_1": ["Cat_1", "Cat_2", "Cat_3", "Cat_4", "Cat_5", "Cat_6"].index(Var_1)
+    }
+    return pd.DataFrame([data], columns=FEATURE_NAMES)
+
+# =========================
+# 6. Prediksi
+# =========================
+if st.button("Prediksi"):
+    input_df = encode_input()
+    prediction_proba = model.predict(input_df, num_iteration=model.best_iteration)
     prediction_class = np.argmax(prediction_proba, axis=1)[0]
 
-    st.success(f"Prediksi Segmentasi: **{prediction_class}**")
-    st.balloons()
+    st.subheader("Hasil Prediksi")
+    st.write(f"Segmentasi Pelanggan: **{prediction_class}**")
+    st.write("Probabilitas tiap kelas:")
+    st.write(prediction_proba)
