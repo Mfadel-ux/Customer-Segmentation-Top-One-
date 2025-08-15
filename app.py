@@ -8,11 +8,12 @@ import joblib
 
 
 def load_model():
-    with open("LGBMClassifier.pkl", "rb") as file:
-        model = pickle.load(file)
     try:
         with open("LGBMClassifier.pkl", "rb") as file:
-            scaler = pickle.load(file)
+            model = pickle.load(file)
+    except Exception:
+        model = joblib.load("LGBMClassifier.pkl")  # fallback
+
     except FileNotFoundError:
         scaler = None
     return model, scaler
@@ -68,6 +69,7 @@ if submit:
     # Output hasil
     st.success(f"Prediksi Segmentasi: **{prediction}**")
     st.balloons()
+
 
 
 
