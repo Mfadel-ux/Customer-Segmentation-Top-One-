@@ -7,7 +7,7 @@ import pickle
 # 1. Load Pipeline
 # =========================
 with open("pipeline.pkl", "rb") as f:
-    model_pipeline = pickle.load(f)
+    model = pickle.load(f)
 
 # =========================
 # 2. UI
@@ -70,3 +70,4 @@ if st.button("Prediksi"):
         columns=[f"Segment {i}" for i in range(prediction_proba.shape[1])]
     )
     st.dataframe(proba_df.style.format("{:.2f}"))
+
