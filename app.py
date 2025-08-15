@@ -1,34 +1,28 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
 import joblib
 
-
-
-
+# =========================
+# Load Model
+# =========================
+@st.cache_resource
 def load_model():
-    try:
-        with open("LGBMClassifier.pkl", "rb") as file:
-            model = pickle.load(file)
-    except Exception:
-        model = joblib.load("LGBMClassifier.pkl")  # fallback
-
-    except FileNotFoundError:
-        scaler = None
+    model = joblib.load("LGBMClassifier.pkl")  # Pastikan file ada di root repo
+    scaler = None  # Jika ada scaler, load di sini
     return model, scaler
 
 model, scaler = load_model()
 
 # =========================
-# UI Header
+# UI
 # =========================
 st.set_page_config(page_title="Prediksi Segmentasi", layout="centered")
 st.title("🧩 Aplikasi Prediksi Segmentasi (LightGBM)")
-st.write("Masukkan data untuk memprediksi segmen pelanggan.")
+st.write("Masukkan data pelanggan untuk mendapatkan prediksi segmen.")
 
 # =========================
-# Form Input User
+# Input Form
 # =========================
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
@@ -45,10 +39,10 @@ with st.form("prediction_form"):
     submit = st.form_submit_button("Prediksi")
 
 # =========================
-# Prediksi
+# Prediction Logic
 # =========================
 if submit:
-    # Dataframe dari input user
+    # Dataframe dari input
     input_data = pd.DataFrame([[
         umur,
         pendapatan,
@@ -57,7 +51,7 @@ if submit:
         jumlah_transaksi
     ]], columns=["umur", "pendapatan", "skor_belanja", "lama_langganan", "jumlah_transaksi"])
 
-    # Scaling jika ada scaler
+    # Scaling jika ada
     if scaler is not None:
         input_scaled = scaler.transform(input_data)
     else:
@@ -65,15 +59,5 @@ if submit:
 
     # Prediksi
     prediction = model.predict(input_scaled)[0]
-
-    # Output hasil
     st.success(f"Prediksi Segmentasi: **{prediction}**")
     st.balloons()
-
-
-
-
-
-
-
-
