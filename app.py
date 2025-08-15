@@ -50,4 +50,23 @@ input_df = pd.DataFrame([{
     "Profession": Profession,
     "Work_Experience": Work_Experience,
     "Spending_Score": Spending_Score,
-    "Family_Size":_
+    "Family_Size": Family_Size,
+    "Var_1": Var_1
+}])
+
+# =========================
+# 5. Prediksi & tampilkan hasil
+# =========================
+if st.button("Prediksi"):
+    prediction_proba = model_pipeline.predict_proba(input_df)
+    prediction_class = np.argmax(prediction_proba, axis=1)[0]
+
+    st.subheader("Hasil Prediksi Segmentasi")
+    st.markdown(f"**Segmentasi Pelanggan:** {prediction_class}")
+
+    st.subheader("Probabilitas Tiap Kelas")
+    proba_df = pd.DataFrame(
+        prediction_proba,
+        columns=[f"Segment {i}" for i in range(prediction_proba.shape[1])]
+    )
+    st.dataframe(proba_df.style.format("{:.2f}"))
