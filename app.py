@@ -6,7 +6,7 @@ import pickle
 # =========================
 # 1. Load Pipeline
 # =========================
-with open("LGBMClassifier.pkl".pkl", "rb") as f:
+with open('LGBMClassifier.pkl', 'rb') as f:
     model = pickle.load(f)
 
 # =========================
@@ -70,5 +70,6 @@ if st.button("Prediksi"):
         columns=[f"Segment {i}" for i in range(prediction_proba.shape[1])]
     )
     st.dataframe(proba_df.style.format("{:.2f}"))
+
 
 
